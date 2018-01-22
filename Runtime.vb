@@ -67,8 +67,8 @@ Public NotInheritable Class Runtime
     Public Function CallFunction(Of T)(Name As String, ParamArray Parameters() As Object) As T
         Try
             Me.Enter()
-            Me.StoreGlobals()
-            Me.StoreFunctions()
+            Me.Scope.StoreGlobals()
+            Me.Scope.StoreFunctions()
             If (Me.Scope.Variable(Name)) Then
                 Dim func As TValue = Me.Scope.GetVariable(Name)
                 If (func.IsFunction) Then
@@ -83,8 +83,8 @@ Public NotInheritable Class Runtime
     Public Function CallFunction(Name As String, ParamArray Parameters() As Object) As Object
         Try
             Me.Enter()
-            Me.StoreGlobals()
-            Me.StoreFunctions()
+            Me.Scope.StoreGlobals()
+            Me.Scope.StoreFunctions()
             If (Me.Scope.Variable(Name)) Then
                 Dim func As TValue = Me.Scope.GetVariable(Name)
                 If (func.IsFunction) Then
@@ -126,8 +126,8 @@ Public NotInheritable Class Runtime
     Private Function EvaluateContext(Context As List(Of Expression), ParamArray Parameters() As Object) As Object
         Try
             Me.Enter()
-            Me.StoreFunctions()
-            Me.StoreGlobals()
+            Me.Scope.StoreFunctions()
+            Me.Scope.StoreGlobals()
             Me.Scope.StoreParameters(Parameters)
             Dim lastValue As TValue = Nothing
             For Each e As Expression In Context
@@ -144,32 +144,7 @@ Public NotInheritable Class Runtime
             Me.Leave()
         End Try
     End Function
-    ''' <summary>
-    ''' Collect functions
-    ''' </summary>
-    Private Sub StoreFunctions()
-        Dim changed As Boolean
-        Do
-            changed = False
-            For Each e As Expression In Context
-                If (TypeOf e Is TFunction) Then
-                    Me.Scope.SetVariable(CType(e, TFunction).GetStringValue, New TValue(e))
-                    Me.Context.Remove(e)
-                    changed = True
-                    Exit For
-                End If
-            Next
-        Loop While changed
-        Me.Functions.ForEach(Sub(d) Me.Scope.SetVariable(d.Method.Name, New TValue(d)))
-        Me.Functions.Clear()
-    End Sub
-    ''' <summary>
-    ''' Store globals
-    ''' </summary>
-    Private Sub StoreGlobals()
-        Me.Globals.ForEach(Sub(x, y) Me.Scope.SetVariable(x, New TValue(y)))
-        Me.Globals.Clear()
-    End Sub
+   
     ''' <summary>
     ''' Evaluate context without new scope
     ''' </summary>
