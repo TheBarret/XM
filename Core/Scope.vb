@@ -68,29 +68,38 @@ Namespace Core
             Next
         End Sub
         ''' <summary>
-        ''' Collect functions inside context
-        ''' </summary>
-        Public Sub StoreScriptFunctions(Context As List(Of Expression))
-            Dim changed As Boolean
-            Do
-                changed = False
-                For Each e As Expression In Context
-                    If (TypeOf e Is TFunction) Then
-                        Me.SetVariable(CType(e, TFunction).GetStringValue, New TValue(e))
-                        Context.Remove(e)
-                        changed = True
-                        Exit For
-                    End If
-                Next
-            Loop While changed
-        End Sub
-        ''' <summary>
         ''' Store parameters
         ''' </summary>
         Public Sub StoreParameters(ParamArray Parameters() As Object)
             For i As Integer = 0 To Parameters.Length - 1
                 Me.SetVariable(String.Format("arg{0}", i + 1), New TValue(Parameters(i)))
             Next
+        End Sub
+        ''' <summary>
+        ''' Collect functions
+        ''' </summary>
+        Public Sub StoreFunctions()
+            Dim changed As Boolean
+            Do
+                changed = False
+                For Each e As Expression In Me.Runtime.Context
+                    If (TypeOf e Is TFunction) Then
+                        Me.SetVariable(CType(e, TFunction).GetStringValue, New TValue(e))
+                        Me.Runtime.Context.Remove(e)
+                        changed = True
+                        Exit For
+                    End If
+                Next
+            Loop While changed
+            Me.Runtime.Functions.ForEach(Sub(d) Me.SetVariable(d.Method.Name, New TValue(d)))
+            Me.Runtime.Functions.Clear()
+        End Sub
+        ''' <summary>
+        ''' Store globals
+        ''' </summary>
+        Public Sub StoreGlobals()
+            Me.Runtime.Globals.ForEach(Sub(x, y) Me.SetVariable(x, New TValue(y)))
+            Me.Runtime.Globals.Clear()
         End Sub
         Private disposedValue As Boolean
         Protected Sub Dispose(disposing As Boolean)
