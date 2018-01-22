@@ -3,7 +3,7 @@ Imports System.Text
 Imports System.Security.Cryptography
 
 Namespace Library
-    Public Class Crypt
+    Public Class Cryptography
         <Method(Types.Null, "md5")>
         Public Shared Function MD5Hash(str As Object) As String
             Return String.Concat(MD5.Create.ComputeHash(Text.Encoding.UTF8.GetBytes(str.ToString)).Select(Function(v) v.ToString("X")))
