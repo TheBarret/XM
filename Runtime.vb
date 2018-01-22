@@ -467,13 +467,13 @@ Public NotInheritable Class Runtime
             Me.Scope.Import(GetType(Library.Float))
             Me.Scope.Import(GetType(Library.Arrays))
             Me.Scope.Import(GetType(Library.Casting))
-            Me.Scope.Import(GetType(Library.Crypt))
-            Me.Scope.Import(GetType(Library.Encoders))
             Me.Scope.Import(GetType(Library.Date))
             Me.Scope.Import(GetType(Library.Math))
             Me.Scope.Import(GetType(Library.Rx))
+            Me.Scope.Import(GetType(Library.Encoders))
             Me.Scope.Import(GetType(Library.Specialized))
             Me.Scope.Import(GetType(Library.EightBall))
+            Me.Scope.Import(GetType(Library.Cryptography))
         End If
     End Sub
     ''' <summary>
