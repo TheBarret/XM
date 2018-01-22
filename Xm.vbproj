@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0B509404-041A-401B-9075-A2CD311D25DB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Xm</RootNamespace>
+    <AssemblyName>Xm</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Empty</MyType>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>
+    </NoWarn>
+    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>None</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>
+    </NoWarn>
+    <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>On</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Core\Elements\TGetArray.vb" />
+    <Compile Include="Core\Elements\Types\TArray.vb" />
+    <Compile Include="Library\Arrays.vb" />
+    <Compile Include="Library\Encoders.vb" />
+    <Compile Include="Syntax\Parser.vb" />
+    <Compile Include="Library\Casting.vb" />
+    <Compile Include="Library\Cryptography.vb" />
+    <Compile Include="Library\EightBall.vb" />
+    <Compile Include="Library\Math.vb" />
+    <Compile Include="Library\Rx.vb" />
+    <Compile Include="Library\Date.vb" />
+    <Compile Include="Library\Specialized.vb" />
+    <Compile Include="Syntax\Table.vb" />
+    <Compile Include="Core\Elements\Binary.vb" />
+    <Compile Include="Core\Elements\Expression.vb" />
+    <Compile Include="Core\Elements\TCall.vb" />
+    <Compile Include="Core\Elements\TConditional.vb" />
+    <Compile Include="Core\Elements\TMember.vb" />
+    <Compile Include="Core\Elements\TUse.vb" />
+    <Compile Include="Core\Elements\Types\TFunction.vb" />
+    <Compile Include="Core\Elements\TReturn.vb" />
+    <Compile Include="Core\Elements\Types\TBoolean.vb" />
+    <Compile Include="Core\Elements\Types\TFloat.vb" />
+    <Compile Include="Core\Elements\Types\TIdentifier.vb" />
+    <Compile Include="Core\Elements\Types\TInteger.vb" />
+    <Compile Include="Core\Elements\Types\TNull.vb" />
+    <Compile Include="Core\Elements\Types\TString.vb" />
+    <Compile Include="Core\Elements\Unary.vb" />
+    <Compile Include="Core\Env.vb" />
+    <Compile Include="Utilities\Extensions.vb" />
+    <Compile Include="Utilities\Operators.vb" />
+    <Compile Include="Lexer\Parser.vb" />
+    <Compile Include="Library\Float.vb" />
+    <Compile Include="Library\Integer.vb" />
+    <Compile Include="Library\IO.vb" />
+    <Compile Include="Library\Stdio.vb" />
+    <Compile Include="Library\String.vb" />
+    <Compile Include="Library\Core.vb" />
+    <Compile Include="Utilities\StringParser.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Core\Null.vb" />
+    <Compile Include="Runtime.vb" />
+    <Compile Include="Core\Scope.vb" />
+    <Compile Include="Core\Method.vb" />
+    <Compile Include="Utilities\Serializer.vb" />
+    <Compile Include="Core\Token.vb" />
+    <Compile Include="Core\Tokens.vb" />
+    <Compile Include="Core\Types.vb" />
+    <Compile Include="Core\TValue.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Syntax\Parser.ext.vb" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
