@@ -69,7 +69,6 @@ Public NotInheritable Class Runtime
             Me.Enter()
             Me.StoreGlobals()
             Me.StoreFunctions()
-            Me.Scope.StoreScriptFunctions(Context)
             If (Me.Scope.Variable(Name)) Then
                 Dim func As TValue = Me.Scope.GetVariable(Name)
                 If (func.IsFunction) Then
@@ -86,7 +85,6 @@ Public NotInheritable Class Runtime
             Me.Enter()
             Me.StoreGlobals()
             Me.StoreFunctions()
-            Me.Scope.StoreScriptFunctions(Context)
             If (Me.Scope.Variable(Name)) Then
                 Dim func As TValue = Me.Scope.GetVariable(Name)
                 If (func.IsFunction) Then
@@ -130,7 +128,6 @@ Public NotInheritable Class Runtime
             Me.Enter()
             Me.StoreFunctions()
             Me.StoreGlobals()
-            Me.Scope.StoreScriptFunctions(Context)
             Me.Scope.StoreParameters(Parameters)
             Dim lastValue As TValue = Nothing
             For Each e As Expression In Context
@@ -148,14 +145,26 @@ Public NotInheritable Class Runtime
         End Try
     End Function
     ''' <summary>
-    ''' Collect defined delegates
+    ''' Collect functions
     ''' </summary>
     Private Sub StoreFunctions()
+        Dim changed As Boolean
+        Do
+            changed = False
+            For Each e As Expression In Context
+                If (TypeOf e Is TFunction) Then
+                    Me.Scope.SetVariable(CType(e, TFunction).GetStringValue, New TValue(e))
+                    Me.Context.Remove(e)
+                    changed = True
+                    Exit For
+                End If
+            Next
+        Loop While changed
         Me.Functions.ForEach(Sub(d) Me.Scope.SetVariable(d.Method.Name, New TValue(d)))
         Me.Functions.Clear()
     End Sub
     ''' <summary>
-    ''' Collect defined globals
+    ''' Store globals
     ''' </summary>
     Private Sub StoreGlobals()
         Me.Globals.ForEach(Sub(x, y) Me.Scope.SetVariable(x, New TValue(y)))
