@@ -6,16 +6,16 @@ Namespace Library
     Public Class Linq
         <Method(Types.Array, "grab")>
         Public Shared Function GrabItemsWithCondition(rt As Runtime, collection As List(Of Object), func As TFunction) As List(Of Object)
-            Dim buffer As New List(Of Object)
             If (collection.Any AndAlso func.Parameters.Count >= 1) Then
+                Dim buffer As New List(Of Object)
                 For Each item As Object In collection
                     rt.Scope.SetVariable(func.Parameters.First.GetStringValue, New TValue(item))
                     Dim result As TValue = rt.Resolve(func, {item}.ToList)
                     If (result.IsBoolean AndAlso result.Cast(Of Boolean)()) Then
-                        buffer.Add(item)
+                        Buffer.Add(item)
                     End If
                 Next
-                Return buffer
+                Return Buffer
             End If
             Return Nothing
         End Function
