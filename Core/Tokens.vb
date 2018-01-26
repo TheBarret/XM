@@ -13,6 +13,7 @@
         T_Div
         T_Mod
         T_Assign
+        T_Like
         T_Equal
         T_NotEqual
         T_Greater
@@ -30,6 +31,7 @@
         T_Dot
         T_Negate
         T_Function
+        T_FunctionIL
         T_Return
         T_Use
         T_ParenthesisOpen

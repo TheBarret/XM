@@ -33,33 +33,42 @@ Namespace Utilities
         <Extension>
         Public Function CreateDelegate(Type As Type, Name As String) As [Delegate]
             Dim method As MethodInfo = Type.GetMethod(Name, BindingFlags.Public Or BindingFlags.Static Or BindingFlags.IgnoreCase)
-            If (method IsNot Nothing AndAlso method.IsStatic And method.IsPublic) Then
+            If (method IsNot Nothing) Then
                 Return method.CreateDelegate(Exp.GetDelegateType((From p In method.GetParameters Select p.ParameterType).Concat(New Type() {method.ReturnType}).ToArray))
             End If
             Throw New Exception(String.Format("Method '{0}.{1}' not found or not qualified for delegate import", Type.Name, Name))
         End Function
         <Extension>
-        Public Sub ForEach(dict As Dictionary(Of String, Object), action As Action(Of String, Object))
-            For Each pair As KeyValuePair(Of String, Object) In dict
+        Public Function IsObject(type As Type) As Boolean
+            Return type Is GetType(Object) Or type Is GetType(List(Of Object))
+        End Function
+        <Extension>
+        Public Sub ForEach(Of X, Y)(dict As Dictionary(Of X, Y), action As Action(Of X, Y))
+            For Each pair As KeyValuePair(Of X, Y) In dict
                 action.Invoke(pair.Key, pair.Value)
             Next
         End Sub
         <Extension>
-        Public Function ConvertToList(Of T)(value As T) As List(Of T)
-            Return New List(Of T) From {value}
+        Public Function Push(Of T)(collection As List(Of T), values As List(Of T)) As List(Of T)
+            collection.InsertRange(0, values)
+            Return collection
         End Function
         <Extension>
-        Public Function ConvertToList(Of T)(value As T, collection As List(Of T)) As List(Of T)
-            Dim result As New List(Of T) From {value}
-            result.AddRange(collection)
-            Return result
+        Public Function Push(Of T)(collection As List(Of T), value As T) As List(Of T)
+            collection.Insert(0, value)
+            Return collection
         End Function
         <Extension>
-        Public Function StripHexPrefix(value As String) As String
-            If (value.ToLower.StartsWith("0x") Or value.ToLower.StartsWith("&h")) Then
-                Return value.Substring(2)
-            End If
-            Return value
+        Public Function Remove(str As String, ParamArray values() As String) As String
+            For Each v As String In values
+                If (str.Contains(v.ToLower)) Then
+                    str = str.Replace(v.ToLower, String.Empty)
+                End If
+                If (str.Contains(v.ToUpper)) Then
+                    str = str.Replace(v.ToUpper, String.Empty)
+                End If
+            Next
+            Return str
         End Function
         <Extension>
         Public Function RequiresRuntime(d As [Delegate]) As Boolean
@@ -84,23 +93,10 @@ Namespace Utilities
                     Return CType(e, TBoolean).Value.ToString
                 Case GetType(TFunction)
                     Return Extensions.GetStringValue(CType(e, TFunction).Name)
+                Case GetType(TArrayAccess)
+                    Return Extensions.GetStringValue(CType(e, TArrayAccess).Name)
                 Case Else
                     Return e.ToString
-            End Select
-        End Function
-        <Extension>
-        Public Function IsPrimitive(value As Expression) As Boolean
-            Select Case value.GetType
-                Case GetType(TString)
-                    Return True
-                Case GetType(TBoolean)
-                    Return True
-                Case GetType(TInteger)
-                    Return True
-                Case GetType(TFloat)
-                    Return True
-                Case Else
-                    Return False
             End Select
         End Function
         <Extension>
@@ -147,6 +143,8 @@ Namespace Utilities
                 Case Tokens.T_ParenthesisClose : Return ")"
                 Case Tokens.T_BraceOpen : Return "{"
                 Case Tokens.T_BraceClose : Return "}"
+                Case Tokens.T_BracketOpen : Return "["
+                Case Tokens.T_BracketClose : Return "]"
                 Case Tokens.T_Null : Return "Null"
                 Case Tokens.T_EndStatement : Return ";"
                 Case Tokens.T_EndOfFile : Return "EOF"

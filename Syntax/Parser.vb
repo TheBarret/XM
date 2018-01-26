@@ -41,13 +41,15 @@ Namespace Syntax
                 Case Else
                     Dim e As Expression = Me.Assignment
                     If (ExpectEnd) Then
-                        Select Case Me.Current.Type
-                            Case Tokens.T_EndStatement,
-                                 Tokens.T_EndOfFile
-                                Me.NextToken()
-                            Case Else
-                                Throw New Exception(String.Format("Expecting end at '{0}' line {1} ", Me.Current.Type.Name, Me.Current.Line))
-                        End Select
+                        If (Me.Current.Type = Tokens.T_EndStatement) Then
+                            Me.NextToken()
+                        ElseIf (Me.Current.Type = Tokens.T_EndOfFile) Then
+                            Me.NextToken()
+                        Else
+                            Throw New Exception(String.Format("Expecting end at '{0}' line {1} ", Me.Current.Type.Name, Me.Current.Line))
+                        End If
+                    ElseIf (e Is Nothing) Then
+                        Throw New Exception(String.Format("Unexpected '{0}' at line {1} ", Me.Current.Type.Name, Me.Current.Line))
                     End If
                     Return e
             End Select
@@ -56,7 +58,7 @@ Namespace Syntax
             Dim e As Expression = Me.LogicalOr
             While (Me.Current.Type = Tokens.T_Assign)
                 Me.NextToken()
-                e = New Binary(e, Tokens.T_Assign, Me.LogicalOr)
+                e = New Binary(e, Tokens.T_Assign, Me.ParseExpression(False))
             End While
             Return e
         End Function
@@ -85,7 +87,8 @@ Namespace Syntax
                   (Me.Current.Type = Tokens.T_Greater) OrElse
                   (Me.Current.Type = Tokens.T_Lesser) OrElse
                   (Me.Current.Type = Tokens.T_EqualOrGreater) OrElse
-                  (Me.Current.Type = Tokens.T_EqualOrLesser)
+                  (Me.Current.Type = Tokens.T_EqualOrLesser) OrElse
+                  (Me.Current.Type = Tokens.T_Like)
                 Dim op As Tokens = Me.Current.Type
                 Me.NextToken()
                 e = New Binary(e, op, Me.BitShift)
@@ -104,7 +107,7 @@ Namespace Syntax
         End Function
         Private Function PostfixUnary() As Expression
             Dim e As Expression = Me.LogicalXor()
-            '//TODO: TIDent<++/-->
+            '//TODO
             Return e
         End Function
         Private Function LogicalXor() As Expression
@@ -151,7 +154,7 @@ Namespace Syntax
                 Me.NextToken()
                 Dim key As Expression = Me.ParseExpression(False)
                 Me.Match(Tokens.T_BracketClose)
-                e = New TGetArray(e, key)
+                e = New TArrayAccess(e, key)
             End While
             Return e
         End Function
@@ -159,14 +162,14 @@ Namespace Syntax
             Dim e As Expression = Me.TCall()
             While (Me.Current.Type = Tokens.T_Dot)
                 Me.NextToken()
-                e = New TMember(e, Me.ParseIdentifier, Me.ParseTuples)
+                e = New TMember(e, Me.ParseIdentifier, Me.ParseTuples(Tokens.T_ParenthesisOpen, Tokens.T_ParenthesisClose))
             End While
             Return e
         End Function
         Private Function TCall() As Expression
             Dim e As Expression = Me.Factor
             While (Me.Current.Type = Tokens.T_ParenthesisOpen)
-                e = New TCall(e, Me.ParseTuples)
+                e = New TCall(e, Me.ParseTuples(Tokens.T_ParenthesisOpen, Tokens.T_ParenthesisClose))
             End While
             Return e
         End Function
@@ -176,6 +179,8 @@ Namespace Syntax
                 e = Me.ParseReturn
             ElseIf (Me.Current.Type = Tokens.T_Function) Then
                 e = Me.ParseFunction
+            ElseIf (Me.Current.Type = Tokens.T_FunctionIL) Then
+                e = Me.ParseFunctionIL
             ElseIf (Me.Current.Type = Tokens.T_String) Then
                 e = Me.ParseString
             ElseIf (Me.Current.Type = Tokens.T_Identifier) Then

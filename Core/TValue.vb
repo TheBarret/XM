@@ -22,14 +22,14 @@ Namespace Core
                 Return Types.Float
             ElseIf (TypeOf Me.Value Is Boolean) Then
                 Return Types.Boolean
-            ElseIf (TypeOf Me.Value Is List(Of TValue)) Then
-                Return Types.Array
             ElseIf (TypeOf Me.Value Is TFunction) Then
                 Return Types.Function
             ElseIf (TypeOf Me.Value Is [Delegate]) Then
                 Return Types.Delegate
             ElseIf (TypeOf Me.Value Is Null) Then
                 Return Types.Null
+            ElseIf (TypeOf Me.Value Is List(Of TValue)) Then
+                Return Types.Array
             Else
                 Return Types.Undefined
             End If
@@ -77,15 +77,28 @@ Namespace Core
         Public Shared Function Null() As TValue
             Return New TValue
         End Function
-        Public Shared Function Unwrap(value As Object) As Object
-            Do While TypeOf value Is TValue Or TypeOf value Is Null
-                If (TypeOf value Is TValue) Then
-                    value = CType(value, TValue).Value
-                ElseIf (TypeOf value Is Null) Then
-                    value = Nothing
+        Public Shared Function Wrap(value As Object) As TValue
+            If (TypeOf value Is TValue) Then
+                Return CType(value, TValue)
+            ElseIf (TypeOf value Is List(Of Object)) Then
+                Return New TValue(CType(value, List(Of Object)).Select(Function(x) TValue.Wrap(x)).ToList)
+            Else
+                Return New TValue(value)
+            End If
+        End Function
+        Public Shared Function Unwrap(collection As List(Of TValue)) As List(Of Object)
+            Dim buffer As New List(Of Object)
+            For Each item As TValue In collection
+                If (item.IsArray) Then
+                    buffer.Add(TValue.Unwrap(item.Cast(Of List(Of TValue))))
+                Else
+                    buffer.Add(TValue.Unwrap(item))
                 End If
-            Loop
-            Return value
+            Next
+            Return buffer
+        End Function
+        Public Shared Function Unwrap(value As TValue) As Object
+            Return value.Value
         End Function
     End Class
 End Namespace

@@ -77,16 +77,19 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Elements\TGetArray.vb" />
+    <Compile Include="Core\Elements\TArrayAccess.vb" />
     <Compile Include="Core\Elements\Types\TArray.vb" />
     <Compile Include="Library\Arrays.vb" />
     <Compile Include="Library\Encoders.vb" />
+    <Compile Include="Library\Functions.vb" />
+    <Compile Include="Library\IPAddress.vb" />
+    <Compile Include="Library\Linq.vb" />
     <Compile Include="Syntax\Parser.vb" />
     <Compile Include="Library\Casting.vb" />
     <Compile Include="Library\Cryptography.vb" />
     <Compile Include="Library\EightBall.vb" />
     <Compile Include="Library\Math.vb" />
-    <Compile Include="Library\Rx.vb" />
+    <Compile Include="Library\Regex.vb" />
     <Compile Include="Library\Date.vb" />
     <Compile Include="Library\Specialized.vb" />
     <Compile Include="Syntax\Table.vb" />

@@ -69,5 +69,13 @@ Namespace Library
         Public Shared Function Hexadecimal(str As String) As String
             Return String.Concat(Text.Encoding.UTF8.GetBytes(str).Select(Function(v) v.ToString("X")))
         End Function
+        <Method(Types.String, "toarray")>
+        Public Shared Function ToArray(str As String) As List(Of Object)
+            Dim buffer As New List(Of Object)
+            For Each ch As Char In str.ToCharArray
+                buffer.Add(ch.ToString)
+            Next
+            Return buffer
+        End Function
     End Class
 End Namespace

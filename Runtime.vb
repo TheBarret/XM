@@ -30,7 +30,7 @@ Public NotInheritable Class Runtime
         Me.Context = New Syntax.Parser().Analyze(Tokens)
     End Sub
     ''' <summary>
-    ''' Registering a delegate
+    ''' Registering a custom delegate
     ''' </summary>
     Public Sub AddFunction(d As [Delegate])
         Me.Functions.Add(d)
@@ -117,13 +117,13 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Evaluate context with new scope and return value as T
     ''' </summary>
-    Private Function EvaluateContext(Of T)(Context As List(Of Expression), ParamArray Parameters() As Object) As T
+    Protected Friend Function EvaluateContext(Of T)(Context As List(Of Expression), ParamArray Parameters() As Object) As T
         Return CType(Me.EvaluateContext(Context, Parameters), T)
     End Function
     ''' <summary>
-    ''' Main evaluation routine
+    ''' Main evaluation routine (requires unwrapping)
     ''' </summary>
-    Private Function EvaluateContext(Context As List(Of Expression), ParamArray Parameters() As Object) As Object
+    Protected Friend Function EvaluateContext(Context As List(Of Expression), ParamArray Parameters() As Object) As Object
         Try
             Me.Enter()
             Me.Scope.StoreFunctions()
@@ -144,11 +144,10 @@ Public NotInheritable Class Runtime
             Me.Leave()
         End Try
     End Function
-   
     ''' <summary>
-    ''' Evaluate context without new scope
+    ''' Evaluate context without new scope (no unwrapping!)
     ''' </summary>
-    Private Function EvaluateContextNoScope(Context As List(Of Expression)) As Object
+    Protected Friend Function EvaluateContextNoScope(Context As List(Of Expression)) As TValue
         If (Me.HasScope) Then
             Dim lastValue As TValue = Nothing
             For Each e As Expression In Context
@@ -157,9 +156,9 @@ Public NotInheritable Class Runtime
             Next
             ''' Single line or script defined return
             If (Context.Count = 1 AndAlso Not Me.Scope.Leave) Then
-                Return TValue.Unwrap(lastValue)
+                Return lastValue
             Else
-                Return TValue.Unwrap(Me.Scope.Value)
+                Return Me.Scope.Value
             End If
         End If
         Throw New Exception("Unable to evaluate, context as no scope available")
@@ -167,7 +166,7 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Determine expression type and resolve
     ''' </summary>
-    Private Function Resolve(e As Expression) As TValue
+    Protected Friend Function Resolve(e As Expression) As TValue
         If (TypeOf e Is TUse) Then
             Return Me.Resolve(CType(e, TUse))
         ElseIf (TypeOf e Is TNull) Then
@@ -182,8 +181,8 @@ Public NotInheritable Class Runtime
             Return New TValue(CType(e, TFloat).Value)
         ElseIf (TypeOf e Is TIdentifier) Then
             Return Me.Resolve(CType(e, TIdentifier))
-        ElseIf (TypeOf e Is TGetArray) Then
-            Return Me.Resolve(CType(e, TGetArray))
+        ElseIf (TypeOf e Is TArrayAccess) Then
+            Return Me.Resolve(CType(e, TArrayAccess))
         ElseIf (TypeOf e Is TArray) Then
             Return Me.Resolve(CType(e, TArray))
         ElseIf (TypeOf e Is TCall) Then
@@ -206,7 +205,7 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Import internal or external libraries
     ''' </summary>
-    Private Function Resolve(e As TUse) As TValue
+    Protected Friend Function Resolve(e As TUse) As TValue
         Dim reference As String = e.Library.GetStringValue
         If (reference.Contains(".dll")) Then
             If (File.Exists(String.Format(".\{0}", reference))) Then
@@ -223,7 +222,7 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Resolve binary expression
     ''' </summary>
-    Private Function Resolve(e As Binary) As TValue
+    Protected Friend Function Resolve(e As Binary) As TValue
         If (e.Left IsNot Nothing AndAlso e.Right IsNot Nothing) Then
             If (e.Op = Tokens.T_Assign) Then
                 Dim name As String = e.Left.GetStringValue
@@ -232,7 +231,7 @@ Public NotInheritable Class Runtime
                     Me.Scope.SetVariable(CType(e.Left, TIdentifier).Value, operand)
                     Return operand
                 Else
-                    Throw New Exception(String.Format("Attempt write readonly variable '{0}'", name))
+                    Throw New Exception(String.Format("Attempt to write readonly variable '{0}'", name))
                 End If
             Else
                 Dim left As TValue = Me.Resolve(e.Left)
@@ -269,16 +268,18 @@ Public NotInheritable Class Runtime
                     Return Operators.ShiftRight(left, right)
                 ElseIf (e.Op = Tokens.T_LShift) Then
                     Return Operators.ShiftLeft(left, right)
+                ElseIf (e.Op = Tokens.T_Like) Then
+                    Return Operators.IsLike(left, right)
                 End If
             End If
             Throw New Exception(String.Format("Undefined expression type '{0}'", e.GetType.Name))
         End If
-        Throw New Exception("Expression is missing an operand")
+        Throw New Exception("Invalid expression")
     End Function
     ''' <summary>
     ''' Resolve unary expression
     ''' </summary>
-    Private Function Resolve(e As Unary) As TValue
+    Protected Friend Function Resolve(e As Unary) As TValue
         If (e.Operand IsNot Nothing) Then
             If (e.Op = Tokens.T_Negate) Then
                 Return Operators.Not(Me.Resolve(e.Operand))
@@ -289,12 +290,12 @@ Public NotInheritable Class Runtime
             End If
             Throw New Exception(String.Format("Undefined expression type '{0}'", e.GetType.Name))
         End If
-        Throw New Exception("Expression is missing an operand")
+        Throw New Exception("Invalid expression")
     End Function
     ''' <summary>
-    ''' Resolve condition and evaluate attached expression block if any
+    ''' Resolve condition and evaluate boolean body
     ''' </summary>
-    Private Function Resolve(e As TConditional) As TValue
+    Protected Friend Function Resolve(e As TConditional) As TValue
         Dim condition As TValue = Me.Resolve(e.Condition)
         If (condition.IsBoolean) Then
             If (condition.Cast(Of Boolean)()) Then
@@ -310,46 +311,45 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Resolve identifier
     ''' </summary>
-    Private Function Resolve(e As TIdentifier) As TValue
+    Protected Friend Function Resolve(e As TIdentifier) As TValue
         Dim name As String = e.Value
         If (Me.Scope.Variable(name)) Then Return Me.Scope.GetVariable(name)
         Throw New Exception(String.Format("Undefined identifier '{0}'", name))
     End Function
     ''' <summary>
-    ''' Resolve array
+    ''' Resolve array object
     ''' </summary>
-    Private Function Resolve(e As TArray) As TValue
+    Protected Friend Function Resolve(e As TArray) As TValue
         Return New TValue((From v As Expression In e.Values Select Me.Resolve(v)).ToList)
     End Function
     ''' <summary>
     ''' Resolve array value
     ''' </summary>
-    Private Function Resolve(e As TGetArray) As TValue
-        Dim key As TValue = Me.Resolve(e.Index)
-        Dim var As TValue = Me.Resolve(e.Identifier)
+    Protected Friend Function Resolve(e As TArrayAccess) As TValue
+        Dim key As TValue = Me.Resolve(e.Index), var As TValue = Me.Resolve(e.Name)
         If (key.IsInteger) Then
             If (var.IsArray) Then
                 Dim index As Integer = key.Cast(Of Integer)()
-                Dim arr As List(Of TValue) = var.Cast(Of List(Of TValue))()
-                If (index >= 0 AndAlso index <= arr.Count - 1) Then
-                    Return arr.ElementAt(index)
+                Dim array As List(Of TValue) = var.Cast(Of List(Of TValue))()
+                If (index >= 0 AndAlso index <= array.Count - 1) Then
+                    Return array.ElementAt(index)
                 End If
-                Throw New Exception(String.Format("Array index is out of range '{0}[{1}]'", e.Identifier.GetStringValue, key.ToString))
+                Throw New Exception(String.Format("Index is out of range '{0}[{1}]'", e.GetStringValue, key.ToString))
             End If
-            Throw New Exception(String.Format("Variable '{0}' is not an array", e.Identifier.GetStringValue))
+            Throw New Exception(String.Format("'{0}' is not an array", e.GetStringValue))
         End If
-        Throw New Exception(String.Format("Array index must be nummeric '{0}[{1}]'", e.Identifier.GetStringValue, key.ToString))
+        Throw New Exception(String.Format("Index must be nummeric '{0}[{1}]'", e.GetStringValue, key.ToString))
     End Function
     ''' <summary>
     ''' Resolve member
     ''' </summary>
-    Private Function Resolve(e As TMember) As TValue
+    Protected Friend Function Resolve(e As TMember) As TValue
         Dim value As TValue = Me.Resolve(e.Target)
         Dim reference As String = String.Format("{0}.{1}", value.ScriptType, e.Member.GetStringValue)
         If (Me.Scope.Variable(reference)) Then
             Dim func As TValue = Me.Scope.GetVariable(reference)
             If (func.IsDelegate) Then
-                Return Me.Resolve(CType(func.Value, [Delegate]), value.ConvertToList(Me.Resolve(e.Parameters)))
+                Return Me.Resolve(CType(func.Value, [Delegate]), Me.Resolve(e.Parameters).Push(value))
             End If
         End If
         Throw New Exception(String.Format("Undefined function '{0}'", e.ToString))
@@ -357,7 +357,7 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Resolve call
     ''' </summary>
-    Private Function Resolve(e As TCall) As TValue
+    Protected Friend Function Resolve(e As TCall) As TValue
         If (Me.Scope.Variable(e.Name.GetStringValue)) Then
             Dim func As TValue = Me.Resolve(e.Name)
             If (func.IsFunction) Then
@@ -372,16 +372,16 @@ Public NotInheritable Class Runtime
         Throw New Exception(String.Format("Undefined function '{0}'", e.ToString))
     End Function
     ''' <summary>
-    ''' Resolve TFunction with parameters
+    ''' Resolve TFunction with object type parameters
     ''' </summary>
-    Private Function Resolve(e As TFunction, params As List(Of Object)) As TValue
+    Protected Friend Function Resolve(e As TFunction, params As List(Of Object)) As TValue
         Try
             Me.Enter()
             If (e.Parameters.Count = params.Count) Then
                 For i As Integer = 0 To e.Parameters.Count - 1
                     Me.Scope.SetVariable(e.Parameters(i).GetStringValue, New TValue(params(i)))
                 Next
-                Return New TValue(Me.EvaluateContextNoScope(e.Body))
+                Return Me.EvaluateContextNoScope(e.Body)
             End If
         Finally
             Me.Leave()
@@ -389,15 +389,15 @@ Public NotInheritable Class Runtime
         Throw New Exception(String.Format("Parameter count mismatch for '{0}'", e.ToString))
     End Function
     ''' <summary>
-    ''' Resolve TFunction with parameters as expressions
-    Private Function Resolve(e As TFunction, params As List(Of Expression)) As TValue
+    ''' Resolve TFunction with expression type parameters
+    Protected Friend Function Resolve(e As TFunction, params As List(Of Expression)) As TValue
         Try
             Me.Enter()
             If (e.Parameters.Count = params.Count) Then
                 For i As Integer = 0 To e.Parameters.Count - 1
                     Me.Scope.SetVariable(e.Parameters(i).GetStringValue, Me.Resolve(params(i)))
                 Next
-                Return New TValue(Me.EvaluateContextNoScope(e.Body))
+                Return Me.EvaluateContextNoScope(e.Body)
             End If
         Finally
             Me.Leave()
@@ -405,14 +405,15 @@ Public NotInheritable Class Runtime
         Throw New Exception(String.Format("Parameter count mismatch for '{0}'", e.ToString))
     End Function
     ''' <summary>
-    ''' Resolve delegate function
+    ''' Resolve library function
     ''' </summary>
-    Private Function Resolve(e As [Delegate], params As List(Of TValue)) As TValue
+    Protected Friend Function Resolve(e As [Delegate], params As List(Of TValue)) As TValue
         Try
             Me.Enter()
-            If (e.RequiresRuntime) Then params.Insert(0, New TValue(Me))
-            If (Me.Validate(e, params)) Then
-                Return New TValue(e.Method.Invoke(Nothing, params.Select(Function(p) p.Value).ToArray))
+            Dim parameters As List(Of Object) = TValue.Unwrap(params)
+            If (e.RequiresRuntime) Then parameters.Insert(0, Me)
+            If (Me.Validate(e, parameters)) Then
+                Return TValue.Wrap(e.Method.Invoke(Nothing, parameters.ToArray))
             End If
             Return TValue.Null
         Finally
@@ -420,15 +421,15 @@ Public NotInheritable Class Runtime
         End Try
     End Function
     ''' <summary>
-    ''' Validates signature with given parameters
+    ''' Validates parameters with target function
     ''' </summary>
-    Private Function Validate(e As [Delegate], params As List(Of TValue)) As Boolean
+    Protected Friend Function Validate(e As [Delegate], params As List(Of Object)) As Boolean
         If (e.Method.GetParameters.Count <> params.Count) Then
             Throw New Exception(String.Format("Parameter count mismatch for '{0}()'", e.Method.Name))
         End If
         For i As Integer = 0 To e.Method.GetParameters.Count - 1
-            If (e.Method.GetParameters(i).ParameterType Is GetType(Object)) Then Continue For
-            If (e.Method.GetParameters(i).ParameterType IsNot params(i).Value.GetType) Then
+            If (e.Method.GetParameters(i).ParameterType.IsObject) Then Continue For
+            If (e.Method.GetParameters(i).ParameterType IsNot params(i).GetType) Then
                 Throw New Exception(String.Format("Parameter type mismatch for '{0}()'", e.Method.Name))
             End If
         Next
@@ -437,13 +438,13 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Resolve list of expressions
     ''' </summary>
-    Private Function Resolve(e As List(Of Expression)) As List(Of TValue)
+    Protected Friend Function Resolve(e As List(Of Expression)) As List(Of TValue)
         Return e.Select(Function(exp) Me.Resolve(exp)).ToList
     End Function
     ''' <summary>
     ''' Resolve and return with operand
     ''' </summary>
-    Private Function Resolve(e As TReturn) As TValue
+    Protected Friend Function Resolve(e As TReturn) As TValue
         Me.Scope.Leave = True
         Me.Scope.Value = Me.Resolve(e.Operand)
         Return TValue.Null
@@ -451,7 +452,7 @@ Public NotInheritable Class Runtime
     ''' <summary>
     ''' Scope control: current
     ''' </summary>
-    Public Function Scope() As Scope
+    Protected Friend Function Scope() As Scope
         Return Me.Peek
     End Function
     ''' <summary>
@@ -465,11 +466,14 @@ Public NotInheritable Class Runtime
             Me.Scope.Import(GetType(Library.String))
             Me.Scope.Import(GetType(Library.Integer))
             Me.Scope.Import(GetType(Library.Float))
+            Me.Scope.Import(GetType(Library.Functions))
             Me.Scope.Import(GetType(Library.Arrays))
+            Me.Scope.Import(GetType(Library.Linq))
             Me.Scope.Import(GetType(Library.Casting))
             Me.Scope.Import(GetType(Library.Date))
             Me.Scope.Import(GetType(Library.Math))
-            Me.Scope.Import(GetType(Library.Rx))
+            Me.Scope.Import(GetType(Library.IPAddress))
+            Me.Scope.Import(GetType(Library.Regex))
             Me.Scope.Import(GetType(Library.Encoders))
             Me.Scope.Import(GetType(Library.Specialized))
             Me.Scope.Import(GetType(Library.EightBall))

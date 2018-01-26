@@ -31,7 +31,10 @@ Namespace Core
         Public Function GetVariable(Name As String) As TValue
             For Each Scope In Me.Runtime
                 For Each var In Scope
-                    If (var.Key.Equals(Name.ToLower) OrElse Name.ToLower Like var.Key) Then
+                    If (var.Key.Equals(Name.ToLower)) Then
+                        Return var.Value
+                    End If
+                    If (Env.Wildcards AndAlso Name.ToLower Like var.Key) Then
                         Return var.Value
                     End If
                 Next
@@ -44,7 +47,10 @@ Namespace Core
         Public Function Variable(Name As String) As Boolean
             For Each Scope In Me.Runtime
                 For Each var In Scope
-                    If (var.Key.Equals(Name.ToLower) OrElse Name.ToLower Like var.Key) Then
+                    If (var.Key.Equals(Name.ToLower)) Then
+                        Return True
+                    End If
+                    If (Env.Wildcards AndAlso Name.ToLower Like var.Key) Then
                         Return True
                     End If
                 Next

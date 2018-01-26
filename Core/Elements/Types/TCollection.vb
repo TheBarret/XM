@@ -1,5 +1,5 @@
 ﻿Namespace Core.Elements.Types
-    Public NotInheritable Class TArray
+    Public NotInheritable Class TCollection
         Inherits Expression
         Public Property Values As List(Of Expression)
         Sub New()

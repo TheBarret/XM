@@ -36,5 +36,9 @@ Namespace Library
         Public Shared Function Serialize(expr As String) As String
             Return String.Format("{0}", String.Join(",", Serializer.Create(expr)))
         End Function
+        <Method(Types.Null, "version")>
+        Public Shared Function Version() As String
+            Return Assembly.GetExecutingAssembly.GetName.Version.ToString
+        End Function
     End Class
 End Namespace

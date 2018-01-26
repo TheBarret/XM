@@ -2,6 +2,7 @@
 Namespace Core
     Public Class Env
         Public Const MaxRepeats As Integer = 255
+        Public Const Wildcards As Boolean = True
         Public Const Floats As NumberStyles = NumberStyles.Float
         Public Const Integers As NumberStyles = NumberStyles.Integer
         Public Const Hexadecimal As NumberStyles = NumberStyles.HexNumber

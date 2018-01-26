@@ -40,9 +40,9 @@ Namespace Library
                 ElseIf (Single.TryParse(strvalue, Nothing)) Then
                     Return Single.Parse(strvalue, Env.Floats, Env.Culture)
                 ElseIf (strvalue.ToLower.StartsWith("0x") Or strvalue.ToLower.StartsWith("&H")) Then
-                    Dim i As Integer = 0
-                    If (Integer.TryParse(strvalue.StripHexPrefix, Env.Hexadecimal, Env.Culture, i)) Then
-                        Return i
+                    Dim int As Integer = 0
+                    If (Integer.TryParse(strvalue.Remove("0x", "&h"), Env.Hexadecimal, Env.Culture, int)) Then
+                        Return int
                     End If
                 End If
             End If

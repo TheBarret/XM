@@ -215,5 +215,8 @@ Namespace Utilities
                 Return TValue.Null
             End If
         End Function
+        Public Shared Function IsLike(a As TValue, b As TValue) As TValue
+            Return New TValue(a.Value.ToString Like b.Value.ToString)
+        End Function
     End Class
 End Namespace
