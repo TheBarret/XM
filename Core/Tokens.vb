@@ -27,11 +27,13 @@
         T_Or
         T_And
         T_Xor
+        T_QM
+        T_Colon
         T_Comma
         T_Dot
         T_Negate
         T_Function
-        T_FunctionIL
+        T_ILFunc
         T_Return
         T_Use
         T_ParenthesisOpen

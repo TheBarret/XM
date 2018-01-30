@@ -13,7 +13,7 @@ Namespace Syntax
             If (stream.Count > 0) Then
                 Me.Index = 0
                 Me.Stream = stream
-                Me.Current = stream(0)
+                Me.Current = stream.First
                 Me.Parse()
             End If
             Return Me
@@ -22,7 +22,7 @@ Namespace Syntax
             If (stream.Count > 0) Then
                 Me.Index = 0
                 Me.Stream = stream
-                Me.Current = stream(0)
+                Me.Current = stream.First
                 Me.Parse()
             End If
             Return Serializer.Create(Me.Stream, offset, shift)
@@ -55,10 +55,21 @@ Namespace Syntax
             End Select
         End Function
         Private Function Assignment() As Expression
-            Dim e As Expression = Me.LogicalOr
+            Dim e As Expression = Me.Ternary
             While (Me.Current.Type = Tokens.T_Assign)
                 Me.NextToken()
                 e = New Binary(e, Tokens.T_Assign, Me.ParseExpression(False))
+            End While
+            Return e
+        End Function
+        Private Function Ternary() As Expression
+            Dim e As Expression = Me.LogicalOr()
+            While (Me.Current.Type = Tokens.T_QM)
+                Me.NextToken()
+                Dim a As Expression = Me.ParseExpression(False)
+                Me.Match(Tokens.T_Colon)
+                Dim b As Expression = Me.ParseExpression(False)
+                e = New Ternary(e, a, b)
             End While
             Return e
         End Function
@@ -179,7 +190,7 @@ Namespace Syntax
                 e = Me.ParseReturn
             ElseIf (Me.Current.Type = Tokens.T_Function) Then
                 e = Me.ParseFunction
-            ElseIf (Me.Current.Type = Tokens.T_FunctionIL) Then
+            ElseIf (Me.Current.Type = Tokens.T_ILFunc) Then
                 e = Me.ParseFunctionIL
             ElseIf (Me.Current.Type = Tokens.T_String) Then
                 e = Me.ParseString

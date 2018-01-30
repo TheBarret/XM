@@ -77,9 +77,7 @@ Namespace Core
         ''' Store parameters
         ''' </summary>
         Public Sub StoreParameters(ParamArray Parameters() As Object)
-            For i As Integer = 0 To Parameters.Length - 1
-                Me.SetVariable(String.Format("arg{0}", i + 1), New TValue(Parameters(i)))
-            Next
+            Me.SetVariable("args", TValue.Wrap(Parameters.ToList))
         End Sub
         ''' <summary>
         ''' Collect functions

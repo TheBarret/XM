@@ -7,11 +7,7 @@ Namespace Core
             Me.Value = New Null
         End Sub
         Sub New(Value As Object)
-            If (Value Is Nothing) Then
-                Me.Value = New Null
-            Else
-                Me.Value = Value
-            End If
+            Me.Value = If(Value Is Nothing, TValue.Null, Value)
         End Sub
         Public Function ScriptType() As Types
             If (TypeOf Me.Value Is String) Then
@@ -80,11 +76,16 @@ Namespace Core
         Public Shared Function Wrap(value As Object) As TValue
             If (TypeOf value Is TValue) Then
                 Return CType(value, TValue)
+            ElseIf (TypeOf value Is Object()) Then
+                Return New TValue(CType(value, List(Of Object)).Select(Function(x) TValue.Wrap(x)).ToList)
             ElseIf (TypeOf value Is List(Of Object)) Then
                 Return New TValue(CType(value, List(Of Object)).Select(Function(x) TValue.Wrap(x)).ToList)
             Else
                 Return New TValue(value)
             End If
+        End Function
+        Public Shared Function Unwrap(collection As TValue()) As List(Of Object)
+            Return TValue.Unwrap(collection.ToList)
         End Function
         Public Shared Function Unwrap(collection As List(Of TValue)) As List(Of Object)
             Dim buffer As New List(Of Object)
@@ -98,7 +99,10 @@ Namespace Core
             Return buffer
         End Function
         Public Shared Function Unwrap(value As TValue) As Object
-            Return value.Value
+            If (value IsNot Nothing) Then
+                Return value.Value
+            End If
+            Return value
         End Function
     End Class
 End Namespace
